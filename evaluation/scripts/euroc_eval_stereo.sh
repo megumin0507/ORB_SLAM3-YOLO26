@@ -2,37 +2,37 @@
 pathDatasetEuroc='./datasets/machine_hall' #Example, it is necesary to change it by the dataset path
 
 # Single Session Example (Pure visual)
-echo "Launching MH_01_easy with Stereo sensor"
-./Examples/Stereo/stereo_euroc ./Vocabulary/ORBvoc.txt ./Examples/Stereo/EuRoC.yaml "$pathDatasetEuroc"/MH_01_easy/MH_01_easy ./Examples/Stereo/EuRoC_TimeStamps/MH_01_easy.txt dataset-MH_01_easy_stereo
+echo "Launching MH01 with Stereo sensor"
+./Examples/Stereo/stereo_euroc ./Vocabulary/ORBvoc.txt ./Examples/Stereo/EuRoC.yaml "$pathDatasetEuroc"/MH01/MH01 ./Examples/Stereo/EuRoC_TimeStamps/MH01.txt dataset-MH01_stereo
 echo "------------------------------------"
-echo "Evaluation of MH_01_easy trajectory with Stereo sensor"
-python evaluation/evaluate_ate_scale.py evaluation/Ground_truth/EuRoC_left_cam/MH_01_easy_GT.txt f_dataset-MH_01_easy_stereo.txt --plot evaluation/scripts/outputs/MH_01_easy_stereo.pdf --verbose
+echo "Evaluation of MH01 trajectory with Stereo sensor"
+python evaluation/evaluate_ate_scale.py evaluation/Ground_truth/EuRoC_left_cam/MH01_GT.txt f_dataset-MH01_stereo.txt --plot evaluation/scripts/outputs/MH01_stereo.pdf --verbose
 
 
-echo "Launching MH_02_easy with Stereo sensor"
-./Examples/Stereo/stereo_euroc ./Vocabulary/ORBvoc.txt ./Examples/Stereo/EuRoC.yaml "$pathDatasetEuroc"/MH_02_easy/MH_02_easy ./Examples/Stereo/EuRoC_TimeStamps/MH_02_easy.txt dataset-MH_02_easy_stereo
+echo "Launching MH02 with Stereo sensor"
+./Examples/Stereo/stereo_euroc ./Vocabulary/ORBvoc.txt ./Examples/Stereo/EuRoC.yaml "$pathDatasetEuroc"/MH02/MH02 ./Examples/Stereo/EuRoC_TimeStamps/MH02.txt dataset-MH02_stereo
 echo "------------------------------------"
-echo "Evaluation of MH_02_easy trajectory with Stereo sensor"
-python evaluation/evaluate_ate_scale.py evaluation/Ground_truth/EuRoC_left_cam/MH_02_easy_GT.txt f_dataset-MH_02_easy_stereo.txt --plot evaluation/scripts/outputs/MH_02_easy_stereo.pdf --verbose
+echo "Evaluation of MH02 trajectory with Stereo sensor"
+python evaluation/evaluate_ate_scale.py evaluation/Ground_truth/EuRoC_left_cam/MH02_GT.txt f_dataset-MH02_stereo.txt --plot evaluation/scripts/outputs/MH02_stereo.pdf --verbose
 
 
-echo "Launching MH_03_medium with Stereo sensor"
-./Examples/Stereo/stereo_euroc ./Vocabulary/ORBvoc.txt ./Examples/Stereo/EuRoC.yaml "$pathDatasetEuroc"/MH_03_medium/MH_03_medium ./Examples/Stereo/EuRoC_TimeStamps/MH_03_medium.txt dataset-MH_03_medium_stereo
+echo "Launching MH03 with Stereo sensor"
+./Examples/Stereo/stereo_euroc ./Vocabulary/ORBvoc.txt ./Examples/Stereo/EuRoC.yaml "$pathDatasetEuroc"/MH03/MH03 ./Examples/Stereo/EuRoC_TimeStamps/MH03.txt dataset-MH03_stereo
 echo "------------------------------------"
-echo "Evaluation of MH_03_medium trajectory with Stereo sensor"
-python evaluation/evaluate_ate_scale.py evaluation/Ground_truth/EuRoC_left_cam/MH_03_medium_GT.txt f_dataset-MH_03_medium_stereo.txt --plot evaluation/scripts/outputs/MH_03_medium_stereo.pdf --verbose
+echo "Evaluation of MH03 trajectory with Stereo sensor"
+python evaluation/evaluate_ate_scale.py evaluation/Ground_truth/EuRoC_left_cam/MH03_GT.txt f_dataset-MH03_stereo.txt --plot evaluation/scripts/outputs/MH03_stereo.pdf --verbose
 
 
-echo "Launching MH_04_difficult with Stereo sensor"
-./Examples/Stereo/stereo_euroc ./Vocabulary/ORBvoc.txt ./Examples/Stereo/EuRoC.yaml "$pathDatasetEuroc"/MH_04_difficult/MH_04_difficult ./Examples/Stereo/EuRoC_TimeStamps/MH_04_difficult.txt dataset-MH_04_difficult_stereo
+echo "Launching MH04 with Stereo sensor"
+./Examples/Stereo/stereo_euroc ./Vocabulary/ORBvoc.txt ./Examples/Stereo/EuRoC.yaml "$pathDatasetEuroc"/MH04/MH04 ./Examples/Stereo/EuRoC_TimeStamps/MH04.txt dataset-MH04_stereo
 echo "------------------------------------"
-echo "Evaluation of MH_04_difficult trajectory with Stereo sensor"
-python evaluation/evaluate_ate_scale.py evaluation/Ground_truth/EuRoC_left_cam/MH_04_difficult_GT.txt f_dataset-MH_04_difficult_stereo.txt --plot evaluation/scripts/outputs/MH_04_difficult_stereo.pdf --verbose
+echo "Evaluation of MH04 trajectory with Stereo sensor"
+python evaluation/evaluate_ate_scale.py evaluation/Ground_truth/EuRoC_left_cam/MH04_GT.txt f_dataset-MH04_stereo.txt --plot evaluation/scripts/outputs/MH04_stereo.pdf --verbose
 
 
-echo "Launching MH_05_difficult with Stereo sensor"
-./Examples/Stereo/stereo_euroc ./Vocabulary/ORBvoc.txt ./Examples/Stereo/EuRoC.yaml "$pathDatasetEuroc"/MH_05_difficult/MH_05_difficult ./Examples/Stereo/EuRoC_TimeStamps/MH_05_difficult.txt dataset-MH_05_difficult_stereo
+echo "Launching MH05 with Stereo sensor"
+./Examples/Stereo/stereo_euroc ./Vocabulary/ORBvoc.txt ./Examples/Stereo/EuRoC.yaml "$pathDatasetEuroc"/MH05/MH05 ./Examples/Stereo/EuRoC_TimeStamps/MH05.txt dataset-MH05_stereo
 echo "------------------------------------"
-echo "Evaluation of MH_05_difficult trajectory with Stereo sensor"
-python evaluation/evaluate_ate_scale.py evaluation/Ground_truth/EuRoC_left_cam/MH_05_difficult_GT.txt f_dataset-MH_05_difficult_stereo.txt --plot evaluation/scripts/outputs/MH_05_difficult_stereo.pdf --verbose
+echo "Evaluation of MH05 trajectory with Stereo sensor"
+python evaluation/evaluate_ate_scale.py evaluation/Ground_truth/EuRoC_left_cam/MH05_GT.txt f_dataset-MH05_stereo.txt --plot evaluation/scripts/outputs/MH05_stereo.pdf --verbose
 
