@@ -23,6 +23,7 @@
 #include "Tracking.h"
 #include "MapPoint.h"
 #include "Atlas.h"
+#include "YoloDetector.h"
 
 #include <opencv2/opencv.hpp>
 //#include<opencv2/core/core.hpp>
@@ -61,6 +62,7 @@ protected:
     cv::Mat mIm, mImRight;
     int N;
     vector<cv::KeyPoint> mvCurrentKeys,mvCurrentKeysRight;
+    vector<YoloDetection> mvYoloDets;
     vector<bool> mvbMap, mvbVO;
     bool mbOnlyTracking;
     int mnTracked, mnTrackedVO;

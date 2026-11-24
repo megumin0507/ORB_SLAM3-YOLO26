@@ -39,7 +39,9 @@
 #include "Settings.h"
 
 #include "GeometricCamera.h"
+#include "YoloDetector.h"
 
+#include <memory>
 #include <mutex>
 #include <unordered_set>
 
@@ -140,6 +142,9 @@ public:
     Frame mLastFrame;
 
     cv::Mat mImGray;
+
+    // YOLO detections of the current frame (read by FrameDrawer for visualization)
+    std::vector<YoloDetection> mvYoloDets;
 
     // Initialization Variables (Monocular)
     std::vector<int> mvIniLastMatches;
@@ -262,6 +267,10 @@ protected:
     ORBextractor* mpORBextractorLeft, *mpORBextractorRight;
     ORBextractor* mpIniORBextractor;
 
+    // YOLO26 dynamic-object detector (loaded at Tracking init)
+    std::unique_ptr<YoloDetector> mpYolo;
+    cv::Mat mYoloMask;  // 255=keep, 0=dynamic
+
     //BoW
     ORBVocabulary* mpORBVocabulary;
     KeyFrameDatabase* mpKeyFrameDB;
@@ -357,6 +366,9 @@ protected:
     Sophus::SE3f mTlr;
 
     void newParameterLoader(Settings* settings);
+
+    // Run YOLO on the current left/RGB image; fills mvYoloDets (no feature filtering).
+    void RunYoloDetect(const cv::Mat &im);
 
 #ifdef REGISTER_LOOP
     bool Stop();

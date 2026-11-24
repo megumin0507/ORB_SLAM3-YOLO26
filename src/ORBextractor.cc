@@ -57,6 +57,7 @@
 //#include <opencv2/features2d/features2d.hpp>
 //#include <opencv2/imgproc/imgproc.hpp>
 #include <vector>
+#include <algorithm>
 #include <iostream>
 
 #include "ORBextractor.h"
@@ -1099,6 +1100,29 @@ namespace ORB_SLAM3
         vector < vector<KeyPoint> > allKeypoints;
         ComputeKeyPointsOctTree(allKeypoints);
         //ComputeKeyPointsOld(allKeypoints);
+
+        // Drop keypoints inside masked-out (mask==0) regions, e.g. YOLO dynamic objects.
+        // Keypoints are in pyramid-level coordinates here; scale to the original image.
+        if(!_mask.empty())
+        {
+            Mat mask = _mask.getMat();
+            if(mask.type() == CV_8UC1)
+            {
+                for(int level = 0; level < nlevels; ++level)
+                {
+                    const float scale = mvScaleFactor[level];
+                    vector<KeyPoint> &kps = allKeypoints[level];
+                    kps.erase(std::remove_if(kps.begin(), kps.end(),
+                        [&](const KeyPoint &kp)
+                        {
+                            const int x = cvRound(kp.pt.x * scale);
+                            const int y = cvRound(kp.pt.y * scale);
+                            return x < 0 || y < 0 || x >= mask.cols || y >= mask.rows
+                                   || mask.at<uchar>(y, x) == 0;
+                        }), kps.end());
+                }
+            }
+        }
 
         Mat descriptors;
 

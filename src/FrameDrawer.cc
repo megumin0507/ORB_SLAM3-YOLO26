@@ -23,6 +23,8 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include<mutex>
+#include<iomanip>
+#include<sstream>
 
 namespace ORB_SLAM3
 {
@@ -40,6 +42,7 @@ cv::Mat FrameDrawer::DrawFrame(float imageScale)
     vector<cv::KeyPoint> vIniKeys; // Initialization: KeyPoints in reference frame
     vector<int> vMatches; // Initialization: correspondeces with reference keypoints
     vector<cv::KeyPoint> vCurrentKeys; // KeyPoints in current frame
+    vector<YoloDetection> vYoloDets;   // YOLO detections in current frame
     vector<bool> vbVO, vbMap; // Tracked MapPoints in current frame
     vector<pair<cv::Point2f, cv::Point2f> > vTracks;
     int state; // Tracking state
@@ -66,6 +69,7 @@ cv::Mat FrameDrawer::DrawFrame(float imageScale)
             mState=Tracking::NO_IMAGES_YET;
 
         mIm.copyTo(im);
+        vYoloDets = mvYoloDets;
 
         if(mState==Tracking::NOT_INITIALIZED)
         {
@@ -193,6 +197,27 @@ cv::Mat FrameDrawer::DrawFrame(float imageScale)
                 }
             }
         }
+    }
+
+    // Overlay YOLO detections (boxes are in original image pixels)
+    for(const auto &d : vYoloDets)
+    {
+        if (d.classId != 0) continue;
+        cv::Rect2f r(d.box.x / imageScale, d.box.y / imageScale,
+                     d.box.width / imageScale, d.box.height / imageScale);
+        const cv::Scalar yoloColor(0,0,255); // red (BGR)
+        cv::rectangle(im, r, yoloColor, 2);
+
+        std::stringstream label;
+        label << YoloDetector::ClassName(d.classId) << " " << std::fixed
+              << std::setprecision(2) << d.conf;
+        int bl = 0;
+        cv::Size ts = cv::getTextSize(label.str(), cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &bl);
+        cv::Point org(cvRound(r.x), std::max(cvRound(r.y), ts.height + 2));
+        cv::rectangle(im, cv::Rect(org.x, org.y - ts.height - 2, ts.width + 2, ts.height + bl + 2),
+                      yoloColor, cv::FILLED);
+        cv::putText(im, label.str(), cv::Point(org.x + 1, org.y - 1),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255,255,255), 1, cv::LINE_AA);
     }
 
     cv::Mat imWithInfo;
@@ -372,6 +397,7 @@ void FrameDrawer::Update(Tracking *pTracker)
     unique_lock<mutex> lock(mMutex);
     pTracker->mImGray.copyTo(mIm);
     mvCurrentKeys=pTracker->mCurrentFrame.mvKeys;
+    mvYoloDets=pTracker->mvYoloDets;
     mThDepth = pTracker->mCurrentFrame.mThDepth;
     mvCurrentDepth = pTracker->mCurrentFrame.mvDepth;
 

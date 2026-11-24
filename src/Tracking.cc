@@ -117,6 +117,35 @@ Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
         }
     }
 
+    // Load YOLO26 ONNX model (optional keys in settings YAML).
+    // Defaults assume the binary is launched from the repo root.
+    {
+        string yoloPath = "model/yolo26n.onnx";
+        float yoloConf = 0.25f;
+        cv::FileStorage fYolo(strSettingPath, cv::FileStorage::READ);
+        if(fYolo.isOpened())
+        {
+            cv::FileNode nPath = fYolo["Yolo.ModelPath"];
+            if(!nPath.empty() && nPath.isString())
+                yoloPath = (string)nPath;
+            cv::FileNode nConf = fYolo["Yolo.ConfThreshold"];
+            if(!nConf.empty() && nConf.isReal())
+                yoloConf = (float)nConf;
+            fYolo.release();
+        }
+
+        try
+        {
+            mpYolo = std::make_unique<YoloDetector>(yoloPath, yoloConf);
+        }
+        catch(const std::exception &e)
+        {
+            cerr << e.what() << endl;
+            cerr << "Tracking: continuing without YOLO (dynamic masking disabled)." << endl;
+            mpYolo.reset();
+        }
+    }
+
 #ifdef REGISTER_TIMES
     vdRectStereo_ms.clear();
     vdResizeImage_ms.clear();
@@ -1451,9 +1480,36 @@ bool Tracking::GetStepByStep()
 
 
 
+void Tracking::RunYoloDetect(const cv::Mat &im)
+{
+    mvYoloDets.clear();
+    mYoloMask.release();
+    if(!mpYolo || !mpYolo->IsLoaded() || im.empty())
+        return;
+
+    // YoloDetector::Detect expects BGR (blobFromImage swapRB=true).
+    cv::Mat imForYolo = im;
+    if(im.channels() == 3 && mbRGB)
+        cv::cvtColor(im, imForYolo, cv::COLOR_RGB2BGR);
+    else if(im.channels() == 4)
+    {
+        if(mbRGB)
+            cv::cvtColor(im, imForYolo, cv::COLOR_RGBA2BGR);
+        else
+            cv::cvtColor(im, imForYolo, cv::COLOR_BGRA2BGR);
+    }
+
+    mvYoloDets = mpYolo->Detect(imForYolo);
+
+    // 255 = keep, 0 = dynamic. COCO class 0 = person.
+    mYoloMask = mpYolo->BuildDynamicMask(im.size(), mvYoloDets, {0});
+}
+
 Sophus::SE3f Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRectRight, const double &timestamp, string filename)
 {
     //cout << "GrabImageStereo" << endl;
+
+    RunYoloDetect(imRectLeft);
 
     mImGray = imRectLeft;
     cv::Mat imGrayRight = imRectRight;
@@ -1519,6 +1575,8 @@ Sophus::SE3f Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat 
 
 Sophus::SE3f Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const double &timestamp, string filename)
 {
+    RunYoloDetect(imRGB);
+
     mImGray = imRGB;
     cv::Mat imDepth = imD;
 
@@ -1565,6 +1623,8 @@ Sophus::SE3f Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, co
 
 Sophus::SE3f Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp, string filename)
 {
+    RunYoloDetect(im);
+
     mImGray = im;
     if(mImGray.channels()==3)
     {
@@ -1584,18 +1644,18 @@ Sophus::SE3f Tracking::GrabImageMonocular(const cv::Mat &im, const double &times
     if (mSensor == System::MONOCULAR)
     {
         if(mState==NOT_INITIALIZED || mState==NO_IMAGES_YET ||(lastID - initID) < mMaxFrames)
-            mCurrentFrame = Frame(mImGray,timestamp,mpIniORBextractor,mpORBVocabulary,mpCamera,mDistCoef,mbf,mThDepth);
+            mCurrentFrame = Frame(mImGray,timestamp,mpIniORBextractor,mpORBVocabulary,mpCamera,mDistCoef,mbf,mThDepth,static_cast<Frame*>(NULL),IMU::Calib(),mYoloMask);
         else
-            mCurrentFrame = Frame(mImGray,timestamp,mpORBextractorLeft,mpORBVocabulary,mpCamera,mDistCoef,mbf,mThDepth);
+            mCurrentFrame = Frame(mImGray,timestamp,mpORBextractorLeft,mpORBVocabulary,mpCamera,mDistCoef,mbf,mThDepth,static_cast<Frame*>(NULL),IMU::Calib(),mYoloMask);
     }
     else if(mSensor == System::IMU_MONOCULAR)
     {
         if(mState==NOT_INITIALIZED || mState==NO_IMAGES_YET)
         {
-            mCurrentFrame = Frame(mImGray,timestamp,mpIniORBextractor,mpORBVocabulary,mpCamera,mDistCoef,mbf,mThDepth,&mLastFrame,*mpImuCalib);
+            mCurrentFrame = Frame(mImGray,timestamp,mpIniORBextractor,mpORBVocabulary,mpCamera,mDistCoef,mbf,mThDepth,&mLastFrame,*mpImuCalib,mYoloMask);
         }
         else
-            mCurrentFrame = Frame(mImGray,timestamp,mpORBextractorLeft,mpORBVocabulary,mpCamera,mDistCoef,mbf,mThDepth,&mLastFrame,*mpImuCalib);
+            mCurrentFrame = Frame(mImGray,timestamp,mpORBextractorLeft,mpORBVocabulary,mpCamera,mDistCoef,mbf,mThDepth,&mLastFrame,*mpImuCalib,mYoloMask);
     }
 
     if (mState==NO_IMAGES_YET)
